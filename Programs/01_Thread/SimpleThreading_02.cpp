@@ -1,0 +1,212 @@
+// ===========================================================================
+// Simple Threading Demo (4 ways to create threads) // SimpleThreading_02.cpp
+// ===========================================================================
+
+#include <iostream>
+#include <thread> 
+#include <chrono>
+
+#include "../Logger/Logger.h"
+
+/*
+ *  4 ways to create a thread:
+ *
+ *  a) Thread with Function Pointer
+ *  b) Thread with Callable Object
+ *  c) Thread with Lambda
+ *  d) Thread with Member Function
+ */
+
+namespace SimpleThreading02 {
+
+    constexpr size_t NumIterations{ 5 };
+
+    static void function(int value, size_t iterations) {
+
+        for (size_t i{}; i != iterations; ++i) {
+
+            Logger::log(std::cout, "in thread ", value);
+            std::this_thread::sleep_for(std::chrono::seconds{ 1 });
+        }
+        Logger::log(std::cout, "Done.");
+    }
+
+    static void test_01() {
+
+        std::thread t{ function, 1, NumIterations };
+        t.detach();
+        Logger::log(std::cout, "Done Version 1.");
+    }
+
+    // --------------------------------------------
+
+    class Runnable {
+    private:
+        int    m_value;
+        size_t m_iterations;
+
+    public:
+        Runnable() 
+            : m_value{ 0 }, m_iterations{ 0 }
+        {
+        }
+
+        Runnable (int value, size_t iterations)
+            : m_value{ value }, m_iterations{iterations }
+        {}
+
+        void tueNichts() {}
+
+        void operator () () const {
+
+            for (size_t i{}; i != m_iterations; ++i) {
+                Logger::log(std::cout, "in thread ", m_value);
+                std::this_thread::sleep_for(std::chrono::seconds{ 1 });
+            }
+            Logger::log(std::cout, "Done.");
+        }
+
+        void operator () (int iterations) const {
+
+            for (size_t i{}; i != iterations; ++i) {
+                Logger::log(std::cout, "in thread ", m_value);
+                std::this_thread::sleep_for(std::chrono::seconds{ 1 });
+            }
+            Logger::log(std::cout, "Done.");
+        }
+
+        void operator () (int iterations, int dummy) const {
+
+            auto l = [*this]() {
+                
+                int copy = this->m_value;   // m_value ist eine Referenz auf m_value von Zeile 45
+            };
+
+            l();
+        }
+    };
+
+    static void test_fragen() {
+
+                         // SO ist das eine Funktionsvereinbarung
+       // Runnable tmp(void);  // Vereinbarung // NICHT: Anweisung // Statement
+                         // Dies ist NICHT !!!! der Aufruf der Standardkonstruktors !!!
+                         // Confuses me: In Java // C# wäre das der Aufruf der Standardkonstruktors
+
+       
+        Runnable tmp2{}; // Aufruf der Standardkonstruktors !!!  Mit Brace Init
+                         
+        //  tmp.tueNichts();
+
+        Runnable tmp1;
+        tmp1.tueNichts();
+        tmp1(5);
+
+
+    }
+
+    static void test_02() {
+
+        Runnable myRunnable{ 2, NumIterations };
+
+        std::thread t { myRunnable };
+
+        t.detach();
+        Logger::log(std::cout, "Done Version 2.");
+    }
+
+    // --------------------------------------------
+
+    static void test_03() {
+
+        int value{ 3 };
+        size_t iterations{ NumIterations };
+
+        std::thread t {
+            [&] () {
+                for (size_t i{}; i != iterations; ++i) {
+                    Logger::log(std::cout, "in thread ", value);
+                    std::this_thread::sleep_for(std::chrono::seconds{ 1 });
+                }
+                Logger::log(std::cout, "Done.");
+            }
+        };
+
+        t.detach();
+        Logger::log(std::cout, "Done Version 3.");
+    }
+
+    // --------------------------------------------
+
+    // Java: IRunnable // Methode run
+
+    class AnotherRunnable {
+    private:
+        int m_value;
+        size_t m_iterations;
+
+    public:
+        AnotherRunnable(int value, size_t iterations)
+            : m_value{ value }, m_iterations{ iterations } {}
+        
+        void run() const {   // operator()
+
+            for (size_t i{}; i != m_iterations; ++i) {
+
+                Logger::log(std::cout, "in thread ", m_value);
+                std::this_thread::sleep_for(std::chrono::seconds{ 1 });
+            }
+            Logger::log(std::cout, "Done.");
+        }
+    };
+
+    static void test_04() {
+
+        AnotherRunnable runnable{ 4, NumIterations };
+
+        std::thread t { &AnotherRunnable::run, runnable };  // Vorsicht !!!!!!
+        
+        t.detach();
+        Logger::log(std::cout, "Done Version 4.");
+    }
+
+    // --------------------------------------------
+
+    // Hints for Error Handling:
+    static void test_05() {
+
+        AnotherRunnable runnable{ 5, NumIterations };
+
+        std::thread t1{ &AnotherRunnable::run, runnable }; // works
+        
+        std::thread t2{ &AnotherRunnable::run, std::move(runnable) }; // works too
+
+        AnotherRunnable* pRunnable = new AnotherRunnable{ 5, NumIterations };  // delete is missing
+        std::thread t3{ &AnotherRunnable::run, pRunnable }; // works again too
+
+        t1.detach();
+        t2.detach();
+        t3.detach();
+
+        Logger::log(std::cout, "Done Version 5.");
+    }
+}
+
+void test_simple_threading_02()
+{
+    using namespace SimpleThreading02;
+
+   // test_fragen();
+
+    test_03();
+    test_04();
+    test_02();
+
+    test_01();
+
+    //   test_05();
+}
+
+// ===========================================================================
+// End-of-File
+// ===========================================================================

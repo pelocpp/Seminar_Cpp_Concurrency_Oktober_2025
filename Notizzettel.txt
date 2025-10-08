@@ -1,0 +1,460 @@
+// ==========================================
+
+Seminar "C++ Concurrency"
+
+Peter Loos
+
+Guten Morgen
+
+// ==========================================
+
+Pause: 12.30 // 17 Uhr.
+
+// ==========================================
+
+Zu meiner Person:
+
+30+ Jahre:
+
+SW-Entwicklung
+Training / Schulung ...
+
+== (Pascal), C/C++, Java, C#, Mobile Progr. (Java), Dart, (Kotlin), JavaScript
+
+   (Python)
+
+== Back-to-the-Roots (Modern C++) // (Classic C++)
+
+// ==========================================
+
+Online-Schulung:
+
+2 Tools:
+
+== Visual Studio IDE
+== Github: Unterlagen
+
+https://github.com/pelocpp
+
+https://github.com/pelocpp/cpp_concurrency
+
+// ==========================================
+
+== Meine Erwartungen
+
+== Kenntnisse: Background // Programmiersprachen
+
+== Was MUSS drin sein
+
+// ==========================================
+
+C++: Standard 17
+
+JUnit  // bash // Python // PyTest // Rust
+
+Repertoire:
+
+Kenntnisse Multithreading.
+
+Multithreading-Unterstützung STL:
+
+C++ 11: Gering ...
+C++ 17: Groesser ...
+C++ 20 und darüber: Noch groesser ...
+
+// ==========================================
+
+std::thread:
+
+Repräsentiert einen Thread in C++.
+
+STL:
+
+std::vector // new // delete 
+
+Aufgabe: Das unterlagerte Betriebssystem zu verdecken.
+
+Beispiel:
+
+std::thread ===> Win32:  CreateThread
+
+            ===> Freigabe der Resources: CloseHandle
+
+std::async  ===> Da wird es spannend.
+
+Thread wird gleich gestartet: Alternative:  std::packaged_task
+
+Funktion, die als Thread ausgeführt wird:
+
+Schnittstelle: Frei wählbar !!!   (Variadischen Templates)
+
+===================================================
+
+std::cout // printf in einer Multithreading-Umgebung.
+
+Da kommt es zu Problemen  // genau ansehen
+
+Lösung:  std::osyncstream   // Erweiterung vom uralten std::cout: ALles threadsicher rauszuschreiben.
+
+===================================================
+
+extern "C" {
+
+}
+
+C++: Parameter Mangling
+
+This process of encoding the parameter types with the method name
+into a unique name is called name mangling.
+
+Beispiel:  // 3 int-Parametern: function@@YAXHHH@Z
+
+In einem C++-Programm können auch C-Funktionen gerufen werden:
+
+Diese reinen C-Funktionen dürfen dem Parameter Mangling nicht unterworfen werden:
+
+Linker: Unique Names.
+
+extern "C" {
+
+}
+
+Alles innerhalb der geschweiften Klammern wird vom Mangling ausgenommen.
+
+=============================================
+
+Wie können Resources eines Threads freigegeben werden, 
+wenn das Thread-Objekt nicht mehr existiert ????
+
+detach kann auf dem HEAP Daten anlegen:
+
+== Handle abgelegt werden.
+== Betriebssystemmachnismen : Teilen mit, wann der Thread zu Ende ist
+
+   CloseHandle aufgerufen werden // delete der Speicher am Heap freigegeben werden.
+
+
+
+Weichmacher:
+------------
+
+std::jhtread
+std::async
+
+=============================================
+
+Windows:
+
+Prozess:
+
+Wenn der primäre Thread eines Prozesses sich beendet,
+werden alle sekundären Threads automatisch beendet !!!
+
+=============================================
+
+Geschachtelte Lambdas ...
+
+Keine nested Functions 
+
+=============================================
+
+Lambdas:
+
+Syntax:  [] ( params ) { anweisungen }
+
+[]: Hier kann ich den Zugriff auf den Kontext festlegen.
+
+Wie: 
+
+2 Varianten:
+
+Eine Variable aus dem Kontext als KOPIE:              =
+Eine Variable aus dem Kontext über eine Referenz:     &
+
+=============================================
+
+Merker:
+
+== Thread mit Methode und expl. Objekt: Übergabe das Objekts via KOPIE !!!
+
+== Thread mit Lambda: In den [] (Capture Clause): Ausschließlich '=' (KOPIE).
+
+=============================================
+
+Problem des sog. atomaren Zugriffs:
+
+Daten, auf die mehrere Threads zugreifen:
+
+long counter = 0;
+
+Mini-Aufgabe:
+
+i)   Die Variable counter 1.000.000 hochzählen.
+ii)  Die Variable counter 1.000.000 runterzählen.
+iii) Welchen Wert hat counter ??? Wir erwarten 0.
+
+(( i) und ii) finden in zwei Threads statt ))
+
+
+                ++m_counter;
+
+                // Speicher in Register (EAX) gelesen
+00007FF683DC2A83  mov         rax,qword ptr [this]  
+00007FF683DC2A8A  mov         eax,dword ptr [rax]  
+
+00007FF683DC2A8C  inc         eax  // ++ // 
+
+                // Annahme: Thread Wechsel // <=====================================
+
+                // Akku (EAX) wird in den Speicher zurückgeschrieben
+00007FF683DC2A8E  mov         rcx,qword ptr [this]  
+00007FF683DC2A95  mov         dword ptr [rcx],eax  
+
+
+EAX: Akku 32 Bit // Extended AX
+
+AX:  16 Bit Welt
+
+rax:  Adress Register
+
+Thread-Wechsel: Interrupt :  Timer-Interrupt:  
+                             ==> Scheduler (Dispatcher)
+                             ==> es soll ein anderer Thread aktiviert werden
+
+Beispiel: m_counter : 100 (Incrementer) , 101, 102, 103, 104
+
+                                         eax: 104 => 105 (inc) 
+
+Decrementer:  104 => 103 => 102 => 101
+
+Thread-Wechsel: 
+
+Es wird der Incrementer-Thread wieder aktiviert:
+
+In Bezug auf den Akku (EAX): 105 
+
+Dieser Wert wird in m_counter geschrieben.
+
+=========================================================
+
+Was passiert u.a. bei einem Thread Wechsel: 
+i) Es werden alle Register gerettet (gesichert)
+   Wohin ??? ==> Auf den aktuellen Stack.
+
+ii) Der Scheduler entscheidet sich für einen neuen Thread
+
+iii) Der Scheduler restauiert (wieder herstellen) den Stack DIESES Threads.
+
+iv) Es wird der zuletzt gesicherte Registersatz umgeswitched.
+
+v) Der IP wird auf den letzten IP dieses Threads gesetzt.
+
+X) Nebenbei: Jeder Thread hat EXKLUSIV einen eigenen Stack !!!
+
+===============================================================
+
+
+Wie kann dieses Problem gelöst werden ???
+
+In C/C++: Nein.
+
+a) Es gibt in Betriebssystemen für EINFACHE Operationen (Zum Beispiel ++)
+
+gesicherte Abschnitte / Realisierungen:
+
+Mit InterlockedIncrement (Windows):
+
+Wie tun die das ??? 
+
+a) Interruptsperre  (DI / EI)
+b) Mehrkern-CPU: Bussperre
+
+Hmm, wie kann ich auf InterlockedIncrement in C++ zugreifen ???
+
+std::atomic
+
+===============================================================
+
+Neben "atomic" einen zweiten Lösungsansatz:  Mutex
+
+===============================================================
+
+Wozu der Mutex:
+
+Ähmm, nicht immer geht es um so einfache Operationen wie in ++.
+
+Komplexere "kritische Abschnitt":
+
+Ein "kritische Abschnitt" sollte nicht unterbrochen werden !!!
+
+Was ist ein Mutex ????
+
+Mutex ==> Mutual Exclusion   // Gegenseitiger Ausschluss
+
+Sequenz von Anweisungen:
+
+// Spezialweisung am Anfang (lock)
+statement01;
+statement02;
+statement03;
+// Spezialweisung am Ende (unlock)
+
+Die müssen "am Stück" ohne Unterbrechung ausgeführt werden.
+
+Beispiel:
+
+                m_mutex.lock();
+
+                ++m_counter;
+                // da könnten noch weitere Anweisungen folgen / stehen
+
+                m_mutex.unlock();
+
+Ginge, wäre korrekt.
+
+====================================================
+
+
+Problem des fehlenden Unlocks:
+
+RAII
+
+Idee:
+
+C++ // Objekt-Orientierung //
+
+== Konstruktoren
+== Destruktoren   // <== Wann wird ein Destruktor aufgerufen ???
+
+                     am Ende des Scopes - deterministisch !!!
+
+Ein std::mutex Objekt wird nicht direkt verwendet,
+sondern wird in einer Hülle versteckt.
+
+== Konstruktor:  ==> lock()
+== Destruktoren  ==> unlock()
+
+Bemerkung:
+Java und C# kennen kein RAII - Pattern. Warum: Weil es dort Garbage Collection gibt
+                    d.h. es gibt keinen Scope-bedingten Destruktoren Aufruf.
+
+Best Practice:
+
+Die Klasse std::mutex immer nur durch eine Hülle aufrufen !!!!
+
+===================================================================
+
+Concurrency:
+
+Gegenseitiger Ausschluss: KONKURRENZ
+
+Einen zweiten Aspekt:     KOOPERATION  (miteinander zusammen arbeiten)
+
+                          Hat nebenbei mit KONKURRENZ zu tun:
+                          Weil gemeinsame Daten produziert / konsumiert werden.
+
+== Ein Thread tut was
+== Ein anderer Thread wartet auf das Ergbnis
+
+Hierfür gibt es mehrere Lösungen / Ansätze.
+
+Condition Variable: C++  11
+
+Konzept:   Dijkstra: Monitor:
+
+Warten // Suspendieren // C++: Wait
+
+Aufwecken // Resume // C++: Notify
+
+// Signal
+
+C++:  std::condition_variable
+
+
+===================================================
+
+ASync // Future ...
+
+Es gibt einen zweiten Weg, um Threads zu erzeugen:  std::async.
+
+std::async
+
+Datenkanal: Zwischen Thread und Thread-Erzeuger
+
+  std::future
+
+  ===> Reinschreiben: mit return implizit.
+
+  <=== Rauslesen: get am std::future Objekt
+
+
+1. Bemerkung:
+--------------
+
+std::launch policy
+
+std::launch::async          ===> Thread
+std::launch::deferred       ===> Führt die Prozedur IM SELBEN Thread aus ,
+                                 wenn das Ergebnis angefordert wird.
+
+Enumerator	Meaning
+async	the task is executed on a different thread, potentially by creating and launching it first
+deferred	the task is executed on the calling thread the first time its result is requested (lazy evaluation)
+
+Zu deferred fehlen mir irgendwie die Anwendungen ?!?!?!?!?!?
+
+
+
+2. Bemerkung:
+--------------
+
+Why std::async: Es wird ein Thread angelegt.
+
+Historische Entwicklung:
+
+== CreateThread: HANDLE
+
+== Unter Linux gibt es eine POSIX-Library
+
+Das sind MÄCHTIGE Funktionen: Laufzeit-Intensiv // Resourcen-intensiv.
+
+Hmmm, möchte den Thread nochmal ausführen:
+Hmm, dann MUSS CreateThread ein zweites Mal aufgerufen werden.
+
+Es gibt KEINE WIEDERVERWENDUNG eines Thread-Objekts: 
+
+==> Web-Server // Socket-Server
+
+  Da kommen viele Requests rein: Hmmm, da benötigt man pro Request einen Thread.
+
+  Hmm, mit CreateThread ist der Rechner schnell tot.
+
+Neuer Ideen: Thread Pools: WIEDERVERWENDUNG von Threads angestrebt.
+
+Win32: ===> Jepp ==> Thread Pool.
+
+Linux: Zu klären // GCC: Nope
+
+==================================================================
+
+std::promise
+
+std::thread:
+
+Kann man da auch einen Datenkanal einrichten ???
+
+std::promise
+
+==============================================================
+
+std::packaged_task:
+
+Ist eine Helfer-Klasse:
+
+Man kann zu einem gewissen Grad eine "Task" ("Aufgabe") zusammenstellen,
+bevor man diese "parallel" ausführt.
+
+(( std::function ))
+
+
+

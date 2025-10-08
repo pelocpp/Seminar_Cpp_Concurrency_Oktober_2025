@@ -1,0 +1,114 @@
+// ===========================================================================
+// ActiveObject_01.cpp // Active Object Pattern
+// ===========================================================================
+
+#include "../Logger/Logger.h"
+
+#include <chrono>
+#include <future>
+#include <mutex>
+#include <thread>
+#include <tuple>
+
+// ===========================================================================
+// 
+// This Example demonstrates the 'Active Object Pattern'
+// pattern as compact as possible.
+// The 'activation list' queue consist of a single element.
+// The scheduler runs a single task, but:
+// A result value is returned from the 'Active Object' to the client.
+
+// ===========================================================================
+
+namespace ActivatorObject01
+{
+    class AddOperation
+    {
+    public:
+        AddOperation(int a, int b) : m_a{ a }, m_b{ b } {}
+
+        auto operator() () {
+
+            Logger::log(std::cout, "adding ", m_a, " and ", m_b, " ... ");
+
+            auto result{ std::make_tuple(m_a, m_b, m_a + m_b) };
+
+            return result;
+        }
+
+    private:
+        int m_a;
+        int m_b;
+    };
+
+    class ActiveObject 
+    {
+    private:
+        std::packaged_task<std::tuple<int, int, int>()> m_activationElement;
+
+        std::mutex m_mutex;
+
+    public:
+
+        std::future<std::tuple<int, int, int>> enqueueTask(int a, int b) {
+
+            AddOperation operation{ a, b };
+
+            std::packaged_task<std::tuple<int, int, int>()> task{ operation };
+
+            auto future = task.get_future();
+
+            {
+                std::lock_guard<std::mutex> guard{ m_mutex };
+
+                m_activationElement = std::move(task);
+            }
+
+            return future;
+        }
+
+        void run() {
+
+            std::jthread jt { [this] () { runSingleTask(); } };
+        }
+
+    private:
+
+        void runSingleTask() {
+
+            std::lock_guard<std::mutex> guard(m_mutex);
+
+            if (m_activationElement.valid()) {
+
+                m_activationElement();
+            }
+        }
+    };
+}
+
+void test_active_object_01()
+{
+    using namespace ActivatorObject01;
+
+    Logger::log(std::cout, "Active Object - Simple Approach");
+
+    ActiveObject activeObject;
+
+    auto future{ activeObject.enqueueTask(3, 5) };
+
+    // start the active object
+    activeObject.run();
+
+    // continue working in the client thread
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    // get the result from the future
+    auto [first, second, sum] = future.get();
+
+    Logger::log(std::cout, first, " + ", second, " = ", sum);
+    Logger::log(std::cout, "Done.");
+}
+
+// ===========================================================================
+// End-of-File
+// ===========================================================================
