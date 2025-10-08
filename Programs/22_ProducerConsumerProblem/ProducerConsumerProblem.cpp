@@ -2,15 +2,14 @@
 // ProducerConsumerProblem.cpp
 // ===========================================================================
 
-
-#include "BlockingQueue.h"
-// #include "BlockingQueueEx.h"
+// #include "BlockingQueue.h"
+#include "BlockingQueueEx.h"
 
 #include <iostream>
 
 constexpr int NumIterations{ 10 };
 
-constexpr std::chrono::milliseconds SleepTimeConsumer{ 120 };
+constexpr std::chrono::milliseconds SleepTimeConsumer{  80 };
 constexpr std::chrono::milliseconds SleepTimeProducer{  80 };
 
 void test_thread_safe_blocking_queue_01()

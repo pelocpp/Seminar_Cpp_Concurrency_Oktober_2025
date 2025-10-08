@@ -497,3 +497,129 @@ ii) Die sind zu schließen !!! Close ...
 
 =============================================================
 
+Semaphore:
+----------
+
+Ähnlichkeiten:  wait // notify
+
+Semaphore => Flagge:  Hissen / einholen
+
+    Steuern, wann kann ich einen kritischen Abschitt betreten.
+
+Ja / Nein: 
+
+Semaphor: In Stufen: Wert, zB 10. 
+
+Es gibt einen SIGNIFIKANTEN Unterschied zum Mutex:
+
+Mutex: lock / unlock          ==> Im SELBEN Thread aufgerufen werden.
+Semaphore: acquire / release  ==> Kann in UNTERSCHIEDLICHEN Threads aufgerufen werden.
+
+// =====================================================
+
+Bemerkung:
+
+Die Funktionalitäten des Wartens / Benachrichtigens (wait / notify)
+lassen sich umsetzen:
+
+i)  mit std::condition_variable
+ii) mit std::semaphore
+
+Wir betrachten dies am Beispiel einer Gegenüberstellung:
+
+Produzenten / Konsumenten Problem.
+
+// =====================================================
+
+Bemerkung:
+
+Semaphore: Counter <=> Anzahl der vorhandenen Daten
+
+Semaphore: Counter <=> Anzahl der vorhandenen Daten in einem
+                       Puffer begrenzter Groesse.
+
+a) Gibt es Daten ???
+b) Habe ich für produzierte Daten Platz ???
+
+===========================================================
+
+Das Erzeuger-Verbraucher Problem
+(Producer Consumer Pattern)
+
+Hauruck-Lösungen:  Nachteile ................
+
+Bemerkung:
+
+        void push(T&& item)   // RValue Referenz
+        void push(const T& item)  // LValue Referenz
+
+        Ginge auch in einer Methode
+
+        // Universal Referenz
+        void push(T&& item)
+        {
+            std::forward<T>(item)
+
+            m_data.at(m_pushIndex) = std::forward<T>(item); // RValue Referenz: 
+                                                            // LValue Referenz: OHNE move
+        }
+
+2. Umsetzung:
+
+Habe ein paar C++ Features hinzugefügt.
+
+Placement new:
+
+class Data{};
+
+A)
+
+func()
+{
+    Data data;   // lokale Variable // STACK
+}
+
+
+func()
+{
+    Data* data = new Data();   // lokale Variable // HEAP
+
+    // delete MUSS gerufen werden -nicht unbedingt in dieser Routine
+    delete data;
+}
+
+Helfer:  std::unique_ptr // std::shared_ptr
+
+new:  Dynamische Speicherverwaltung.
+
+Bebachtung:
+
+Es gibt bzgl. new eine Variante:  
+
+Daten in einem Puffer ablegen / verwalten.
+
+A) Klassischer Umgang mit new:
+
+   Data* data = new Data(); 
+
+   => 1.) Es wird Speicher auf dem Heap reserviert.
+   => 2.) Ein Konstruktor von der Klasse Data wird auf diesem Speicher ausgeführt.
+
+B) Alternativer Umfang mit new:  Placement new
+
+   // es wird "irgendwo" Speicher in der Länge eines Data - Objekts bereitgestellt.
+
+   unsigned char _data [sizeof (Data)];
+
+   Data* data = new (_data) Data(); 
+
+   => 1.) Der Speicher für das Objekt kommt woanders her.
+   => 2.) Ein Konstruktor von der Klasse Data wird auf diesem Speicher ausgeführt.
+
+
+2. Variante:  Semaphor:   Add-On:  Placement New Technik.
+
+// =======================================================
+
+// Beispiel: User* m_data:     m_data + 1
+

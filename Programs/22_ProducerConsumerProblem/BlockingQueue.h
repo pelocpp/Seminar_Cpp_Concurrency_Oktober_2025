@@ -20,7 +20,7 @@ namespace ProducerConsumerQueue
     private:
         std::array<T, QueueSize> m_data;  // array - considered as a queue
 
-        size_t m_pushIndex;
+        size_t m_pushIndex;      // muss da noch darüber nachdenken ...
         size_t m_popIndex;
         size_t m_size;
 
@@ -58,9 +58,9 @@ namespace ProducerConsumerQueue
                 );
 
                 // guard
-                if (m_size < QueueSize) {
+                if (m_size < QueueSize) {  // könnte man weglassen
 
-                    m_data.at(m_pushIndex) = item;
+                    m_data.at(m_pushIndex) = item;  // item kopiert
 
                     ++m_pushIndex;
                     m_pushIndex = m_pushIndex % QueueSize;
@@ -75,7 +75,7 @@ namespace ProducerConsumerQueue
             m_conditionIsEmpty.notify_all();
         }
 
-        void push(T&& item)
+        void push(T&& item)   // RValue Referenz
         {
             {
                 std::unique_lock<std::mutex> guard{ m_mutex };
@@ -89,7 +89,7 @@ namespace ProducerConsumerQueue
                 // guard
                 if (m_size < QueueSize) {
 
-                    m_data.at(m_pushIndex) = std::move(item);
+                    m_data.at(m_pushIndex) = std::move(item);   // hier wird verschoben
 
                     ++m_pushIndex;
                     m_pushIndex = m_pushIndex % QueueSize;
@@ -118,7 +118,10 @@ namespace ProducerConsumerQueue
                 // guard
                 if (m_size != 0) {
 
-                    item = m_data[m_popIndex];
+                    item = m_data[m_popIndex]; // an item (Referenz) wird m_data[m_popIndex] KOPIERT
+
+                    // Beobachtung: Objekt vom Typ T wurde rauskopiert
+                    //              Das originale Objekt liegt aber noch in m_data
 
                     ++m_popIndex;
                     m_popIndex = m_popIndex % QueueSize;
@@ -135,7 +138,7 @@ namespace ProducerConsumerQueue
 
         bool empty() const
         {
-            std::lock_guard<std::mutex> guard{ m_mutex };
+            std::lock_guard<std::mutex> guard{ m_mutex };   // lock
             return m_size == 0;
         }
 
