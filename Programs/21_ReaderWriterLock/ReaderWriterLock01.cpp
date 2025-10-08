@@ -2,19 +2,22 @@
 // ReaderWriterLock01.cpp // Reader Writer Lock
 // ===========================================================================
 
+#include "../Logger/ScopedTimer.h"
+
 #include <iostream>
 #include <mutex>
 #include <shared_mutex>
 #include <thread>
+#include <chrono>
 
-#include "../Logger/ScopedTimer.h"
+// #define ...
 
 constexpr int RegularLocking{ 1 };
 constexpr int SharedLocking{ 2 };
 
 constexpr int LockingMode{ SharedLocking };
 
-constexpr size_t NumIterations{ 10'000'000 };
+constexpr size_t NumIterations{ 500 };
 
 namespace Reader_Writer
 {
@@ -37,6 +40,8 @@ namespace Reader_Writer
 
             for (size_t i{}; i != NumIterations; ++i) {
 
+                std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });
+
                 if constexpr (LockingMode == RegularLocking) {
 
                     std::lock_guard guard{ m_mutex };
@@ -57,7 +62,7 @@ namespace Reader_Writer
 
             Logger::log(std::cout, "Start Reading ...");
 
-            size_t copy{};
+            volatile size_t copy{};   // Um den Optimizer zu vermeiden
 
             while (copy < NumIterations) {
 
@@ -92,14 +97,14 @@ static void test_reader_writer_lock_0xx()
     std::jthread t0{ [&] { container.write(); } };
     std::jthread t1{ [&] { container.read(); } };
     std::jthread t2{ [&] { container.read(); } };
-    std::jthread t3{ [&] { container.read(); } };
-    std::jthread t4{ [&] { container.read(); } };
+    //std::jthread t3{ [&] { container.read(); } };
+    //std::jthread t4{ [&] { container.read(); } };
 
     t0.join();
     t1.join();
     t2.join();
-    t3.join();
-    t4.join();
+    //t3.join();
+    //t4.join();
 
     Logger::log(std::cout, "Value: ", container.getValue());
 

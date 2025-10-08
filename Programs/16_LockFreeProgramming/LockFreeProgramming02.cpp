@@ -11,7 +11,7 @@
 #ifdef _DEBUG
 static constexpr size_t NumIterations = 10'000'000;     // debug
 #else
-static constexpr size_t NumIterations = 10'000'000;     // release
+static constexpr size_t NumIterations = 30'000'000;     // release
 #endif
 
 namespace LockFreeProgrammingIncrementDecrement {

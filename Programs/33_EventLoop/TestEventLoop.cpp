@@ -203,7 +203,7 @@ void test_event_loop_20()
 
     Logger::log(std::cout, "Enqueuing tasks");
 
-    Logger::enableLogging(false);
+    Logger::enableLogging(true);
 
     for (size_t i{ Globals::Start }; i < Globals::End; i += 2) {
         eventLoop.enqueueTask(primeTask, i);

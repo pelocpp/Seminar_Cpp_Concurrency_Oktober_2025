@@ -42,8 +42,10 @@ namespace Concurrency_ThreadsafeStack
         // public interface
         void push(const T& value)
         {
-            std::lock_guard<std::mutex> guard{ m_mutex };
-            m_data.push(value);
+            {
+                std::lock_guard<std::mutex> guard{ m_mutex };
+                m_data.push(value);
+            }
         }
 
         void push(T&& value)
@@ -62,7 +64,9 @@ namespace Concurrency_ThreadsafeStack
         void pop(T& value)
         {
             std::lock_guard<std::mutex> guard{ m_mutex };
-            if (m_data.empty()) throw std::out_of_range{ "Stack is empty!" };
+            if (m_data.empty()) 
+                throw std::out_of_range{ "Stack is empty!" };
+           
             value = m_data.top();
             m_data.pop();
         }
@@ -100,7 +104,7 @@ namespace Concurrency_ThreadsafeStack
                 return std::optional<T>(std::nullopt);
             }
             else {
-                std::optional<T> result(m_data.top());
+                std::optional<T> result(m_data.top());  // Kopie
                 return result;
             }
         }

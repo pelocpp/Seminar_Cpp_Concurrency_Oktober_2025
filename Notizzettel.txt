@@ -623,3 +623,156 @@ B) Alternativer Umfang mit new:  Placement new
 
 // Beispiel: User* m_data:     m_data + 1
 
+============================================================
+
+Fragestellung:
+
+== Variable schreiben:  kritisch
+
+== Variable lesen:  kritisch, wenn gleichzeitig geschrieben
+
+                    Aber. Wenn 2 gleichzeitig lesen wollen
+
+Antwort:
+
+Hmmm, kann das irgendwie nicht nachstellen // simulieren ...
+
+https://wandbox.org/
+
+
+// ==========================================
+
+Threadsicherer Stapel (Threadsafe Stack)
+
+C#:  ConcurrentStack<T> Klasse
+
+C++: Nein, so etwas gibt es hier nicht.
+
+
+===============================================
+
+Beispiel:
+
+ThreadsafeQueue 
+
+ThreadsafeQueue q1, q2;
+
+q1 = q2;   // q2 muss geschützt sein ;  q1 muss geschützt sein 
+
+Wäre ein Beispiel, wo 2 Mutex Objekte einen Sinn ergeben (könnten).
+
+===============================================
+
+Thread Local Storage:
+
+Man möchte seine Daten geschützt haben.
+
+==> Alles am STACK ist geschützt (lokale Variablen)
+
+    Wording: Thread Local Storage ...
+
+
+
+Wie sieht es mit globalen Variablen aus:
+
+NICHT Thread Local, sondern global // <=== Mutex zu schützen.
+
+Feature: Thread Local Storage
+
+thread_local int x{};
+
+===============================================
+
+Lock-Free Programming
+
+== Locks vermeiden
+
+== Nicht den aktuellen Thread suspendieren ...
+
+Beispiel:
+
+== ++
+== Den Wert zweier Variablen vertausche
+
+Compare-and-Swap-Idiom 
+
+compare_exchange_weak 
+compare_exchange_strong
+
+
+exchange: Wird in einer Art Endlosschleife ausgeführt ...
+
+===============================================
+
+Wir kann man das problematische "Sharen" vermeiden:
+
+lock / unlock.
+
+Das Ergbnis auf einer Kopie ausarbeiten.
+
+dann in nur wenigen Operationen auf Shared Data das Ergebnis bereit stellen.
+
+===============================================
+
+CAS: 
+
+Ich habe hier einen Rechner mit einer Intel-CPU:
+
+Das CAS nicht das Mittel der Wahl ist.
+
+===============================================
+
+Realisierung einer Ereigniswarteschlange (Event Loop )
+
+Why ?????????????????????
+
+All - In:  Viele der vorgestellten Konzepte in EINER Anwendung.
+
+Zusammenspiel:
+
+Ereigniswarteschlange:
+
+Concurrency // Threads  ==> Mutex
+
+Muss das so sein ????
+
+Aufgaben: 1 Thread:  Der Reihe nach abzuarbeiten.
+
+m.lock();
+// ...
+m.unlock();
+
+Zwangsserialisierung.
+
+
+Ein Event könnte ein Callable sein.
+
+== Lambda
+== std::function
+
+
+Beispiel: Ein Lambda ist wertzuweisungsverträglich zu std::function
+
+ [this] { m_running = false; }
+
+
+==============================================================
+
+Thread Pool
+===========
+
+std::bind 
+
+Wurde eigentlich durch Lambdas abgelöst.
+
+
+
+Lambda:
+
+[]
+
+[=]    Kopie
+[&]    Referenz
+
+[???]  Move-Semantik:  generalized lambda capture
+

@@ -30,15 +30,18 @@
 
 namespace ThreadPool_ZenSepiol
 {
-    using ThreadPoolFunction = std::move_only_function<void(void)>;
+    using ThreadPoolFunction = std::move_only_function< void ( void ) >;
 
     class ThreadPool
     {
     private:
         mutable std::mutex              m_mutex;
         std::condition_variable         m_condition;
+
         std::vector<std::thread>        m_pool;
+
         std::queue<ThreadPoolFunction>  m_queue;
+
         size_t                          m_threads_count;
         size_t                          m_busy_threads;
         bool                            m_shutdown_requested;
@@ -65,12 +68,12 @@ namespace ThreadPool_ZenSepiol
 
             auto func{ std::bind(std::forward<F>(f), std::forward<Args>(args)...) };
 
-            auto task{ std::packaged_task<decltype( f(args...)) (void) > { func }};
+            auto task{ std::packaged_task< decltype( f(args...) )  (void) > { func }};
 
             auto future = task.get_future();
 
             // generalized lambda capture
-            auto wrapper = [task = std::move(task)]() mutable { task(); };
+            auto wrapper = [task1 = std::move(task)]() mutable { task1(); };
 
             {
                 std::lock_guard<std::mutex> guard{ m_mutex };

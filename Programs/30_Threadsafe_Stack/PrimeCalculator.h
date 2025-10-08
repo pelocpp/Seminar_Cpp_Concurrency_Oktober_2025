@@ -35,6 +35,7 @@ namespace Concurrency_PrimeCalculator
             for (size_t i{ m_begin }; i != m_end; ++i) {
 
                 if (isPrime(i)) {
+                    // Mutex:  lock // 
                     m_stack.push(i);
                 }
             }

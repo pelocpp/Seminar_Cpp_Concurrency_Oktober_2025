@@ -24,7 +24,7 @@ void EventLoop::stop()
 {
     if (m_thread.joinable()) {
 
-        enqueue([this] { m_running = false; });
+        enqueue( [this] { m_running = false; } );
 
         m_thread.join();
     }
@@ -34,7 +34,7 @@ void EventLoop::threadProcedure()
 {
     Logger::log(std::cout, "> Event Loop");
 
-    std::vector<Event> events;
+    std::vector<Event> events;  // liegt am Stack: Ist geschützt !!!
 
     while (m_running)
     {
@@ -46,7 +46,8 @@ void EventLoop::threadProcedure()
                 [this] () -> bool { return ! m_events.empty(); }
             );
 
-            if (!m_events.empty()) {
+            // guard
+            if (! m_events.empty()) {
 
                 std::swap(events, m_events);
             }
@@ -57,7 +58,7 @@ void EventLoop::threadProcedure()
         for (const Event& callable : events)
         {
             Logger::log(std::cout, "! invoking next event");
-            callable();
+            callable();   // Rufe die Methoden im Callable auf !!!
         }
 
         events.clear();  // empty container for next loop

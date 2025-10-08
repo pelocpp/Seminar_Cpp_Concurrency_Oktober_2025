@@ -6,17 +6,19 @@
 #include <print>
 #include <thread>
 
+thread_local int x{ 123 };
+
+static thread_local int xx{ 0 }; // static: xx ist nur in dieser Datei ansprechbar.
+
 namespace ThreadLocalStorage {
 
     // =======================================================================
 
     std::mutex mutex{};
 
-    thread_local int x{};
-
     static void function()
     {
-        thread_local int y{};
+        thread_local int y{ 0 };
 
         {
             std::lock_guard<std::mutex> guard{ mutex };
@@ -35,7 +37,7 @@ void test_thread_local_storage_01() {
 
     using namespace ThreadLocalStorage;
 
-    std::println("Main: {} ", std::this_thread::get_id());
+    std::println("test_thread_local_storage_01: {} ", std::this_thread::get_id());
     std::println("  &x: {:#010x} => {}", reinterpret_cast<intptr_t>(&x), x);
 
     function();

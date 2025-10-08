@@ -16,7 +16,7 @@
 class EventLoop
 {
 private:
-    using Event = std::function<void()>;
+    using Event = std::function<void ( void )>;
 
 private:
     std::vector<Event>        m_events;
@@ -50,7 +50,7 @@ public:
         {
             std::lock_guard<std::mutex> guard{ m_mutex };
 
-            m_events.push_back([=] () mutable {
+            m_events.push_back( [=] (void) mutable {
                 std::forward<TFunc>(callable) (std::forward<TArgs>(args) ...);
                 }
             );

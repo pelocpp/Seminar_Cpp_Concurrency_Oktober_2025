@@ -193,7 +193,7 @@ namespace ThreadPool_ZenSepiol
 
         // 114 prime numbers
         constexpr size_t Start = 1'000'000'000'000'000'001;
-        constexpr size_t End = Start + 5'000;
+        constexpr size_t End = Start + 2'000;
     }
 
     static bool isPrime(size_t number)
