@@ -16,6 +16,7 @@
 namespace Latches_03 {
 
     constexpr size_t ThreadCount{ 4 };
+
     constexpr size_t MaxDelay{ 5000 };
 
     static int calcSumRange(int a, int b) {
@@ -28,15 +29,19 @@ namespace Latches_03 {
 
     static void example_latches_03()
     {
+        Logger::log(std::cout, "Start: ");
+
         std::latch done{ ThreadCount };
 
-        std::array<int, ThreadCount> results{};
-
+        std::array<int, ThreadCount> results{};  // Länge // Konkurrenz // 
+                                                 // jeder Thread hat exklusiv einen Index
+        
         std::vector<std::future<void>> tasks;
 
         std::random_device device{};
 
-        auto worker {
+        auto worker
+        {
             [&] (size_t index, size_t msecs, int first, int last) {
 
                 Logger::log(std::cout, "Calculating from ", first, " up to ", last, "...");
@@ -79,7 +84,10 @@ namespace Latches_03 {
         }
 
         // block until work is done
-        done.wait();
+      //  done.wait();
+
+        tasks.clear();
+
         Logger::log(std::cout, "All calculations done :)");
 
         /*
@@ -108,7 +116,7 @@ namespace Latches_04 {
     constexpr size_t MaxDelay{ 3000 };
 
     std::latch workDone{ 5 };
-    std::latch doExit{ 1 };
+    std::latch doContinue{ 1 };
 
     std::random_device device;
 
@@ -120,11 +128,13 @@ namespace Latches_04 {
         std::this_thread::sleep_for(std::chrono::milliseconds{ msecs });
 
         // notify the master when work is done
-        Logger::log(std::cout, name, ": Work done!");
+        Logger::log(std::cout, name, ": Initialization Work done!");
         workDone.count_down();
 
         // waiting before exiting ...
-        doExit.wait();
+        doContinue.wait();
+
+        Logger::log(std::cout, name, ": Continue Work ...");
         Logger::log(std::cout, name, ": Exit.");
     };
 
@@ -134,7 +144,10 @@ namespace Latches_04 {
 
         Logger::log(std::cout, "Working starts:");
 
-        tasks.push_back(std::async(std::launch::async, slave, "Worker (1)"));
+        //auto f = std::async(std::launch::async, slave, "Worker (1)");  // &  LValue Ref.
+        //tasks.push_back(std::move(f));
+
+        tasks.push_back(std::async(std::launch::async, slave, "Worker (1)"));  // &&  RValue
         tasks.push_back(std::async(std::launch::async, slave, "Worker (2)"));
         tasks.push_back(std::async(std::launch::async, slave, "Worker (3)"));
         tasks.push_back(std::async(std::launch::async, slave, "Worker (4)"));
@@ -142,9 +155,15 @@ namespace Latches_04 {
 
         workDone.wait();
 
-        Logger::log(std::cout, "Working done.");
+        Logger::log(std::cout, "Initialization done.");
 
-        doExit.count_down();
+        doContinue.count_down();
+
+        Logger::log(std::cout, "Continue work");
+
+        tasks.clear();
+    
+        Logger::log(std::cout, "Done.");
     }
 }
 

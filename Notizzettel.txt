@@ -4,11 +4,33 @@ Seminar "C++ Concurrency"
 
 Peter Loos
 
+peter.loos@gmx.de
+-----------------
+
+https://github.com/pelocpp
+
+https://github.com/pelocpp/cpp_concurrency
+
+
 Guten Morgen
 
 // ==========================================
 
-Pause: 12.30 // 17 Uhr.
+Literatur:
+
+C++20 - The Complete Guide
+--------------------------
+
+by Nicolai M. Josuttis
+
+
+C++:
+
+Professional C++ von Marc Gregoire
+----------------------------------
+
+// ==========================================
+
 
 // ==========================================
 
@@ -456,5 +478,22 @@ bevor man diese "parallel" ausführt.
 
 (( std::function ))
 
+=============================================================
 
+std::jthread
+
+==> j joinable
+
+https://www.josuttis.de/
+
+=============================================================
+
+Warum gibt es kein "Abschießen" eines Threads?
+
+i) Im Regelfall hält ein Thread Resources: FILE; SqlConn; Socket; ...
+ii) Die sind zu schließen !!! Close ...
+
+==> Abschuss: Da fehlt die Möglichkeit des Aufräumens ...
+
+=============================================================
 

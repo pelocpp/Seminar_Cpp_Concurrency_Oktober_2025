@@ -2,11 +2,16 @@
 // Program.cpp // JThread
 // ===========================================================================
 
+#include "../Logger/Logger.h"
+
+#include <iostream>
+
 extern void test_jthread();
 
 int main()
 {
     test_jthread();
+    Logger::log(std::cout, "Bin in main");
     return 0;
 }
 

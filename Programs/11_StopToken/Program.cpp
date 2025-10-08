@@ -9,8 +9,8 @@ extern void test_stop_callback();
 int main()
 {
     test_joinable_thread_cooperative_interruptibility();
-    test_condition_variable_any();
-    test_stop_callback();
+    //test_condition_variable_any();
+    //test_stop_callback();
     return 0;
 }
 

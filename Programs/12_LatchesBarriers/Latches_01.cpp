@@ -15,6 +15,8 @@
 
 namespace Latches_01 {
 
+    // Josuttis  // C++ 20
+
     static void loop(char ch, size_t count) {
 
         for (int j{}; j != count; ++j)
@@ -28,7 +30,7 @@ namespace Latches_01 {
 
     static void example_latches_01()
     {
-        std::latch allDone{ 2 };
+        std::latch allDone{ 2 };   // Riegel // Schloss // Auf 2 vorbelegt // Primärthread
 
         std::cout << "Waiting until all tasks are done:" << std::endl;
 
@@ -52,7 +54,9 @@ namespace Latches_01 {
         };
 
         // wait until all tasks have finished
-        allDone.wait();
+        allDone.wait();   // Primärthreads
+
+        // erst weitermachen, wenn die Sekundärthreads fertig sind
 
         std::cout << std::endl << "All tasks done."<< std::endl;
     }

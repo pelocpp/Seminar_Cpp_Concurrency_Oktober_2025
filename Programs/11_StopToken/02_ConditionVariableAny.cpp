@@ -36,7 +36,7 @@ namespace Stop_Tokens_and_Condition_Variables
                         m_condition_variable.wait(
                             lock,
                             token,
-                                [&]() {
+                            [&]() {
                                 bool b { !m_messages.empty()};
                                 Logger::log(std::cout, "Wait: Queue is empty: ", b ? "false" : "true");
                                 return b;

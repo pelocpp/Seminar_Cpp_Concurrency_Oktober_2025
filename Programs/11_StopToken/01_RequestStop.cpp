@@ -94,7 +94,7 @@ namespace JoinableThreadCooperativeInterruptibility {
 
         std::jthread jt{
             [](std::stop_token token) {
-                while (!token.stop_requested()) {
+                while (!token.stop_requested()) {    // schauen wir einmal pro Sekunde vorbei
                     Logger::log(std::cout, "Working ...");
                     sleep(1);
                 }
@@ -102,7 +102,7 @@ namespace JoinableThreadCooperativeInterruptibility {
         };
 
         sleep(5);
-        jt.request_stop();
+        jt.request_stop();   // 5 Sekunden ....
         Logger::log(std::cout, "Leaving main thread ...");
     }
 
@@ -119,6 +119,7 @@ namespace JoinableThreadCooperativeInterruptibility {
             [](std::stop_token token) {
 
                 std::atomic<bool> running { true };
+               // bool running2{true};
 
                 // called on a stop request
                 std::stop_callback callback {
@@ -144,6 +145,10 @@ namespace JoinableThreadCooperativeInterruptibility {
     // =============================================
     // Szenario 6:
     // class std::jthread -- using request_stop -- introducing std::stop_source
+
+    void setBusyFlag() {
+       // running = false;
+    }
 
     static void jthread_06()
     {
@@ -174,6 +179,10 @@ namespace JoinableThreadCooperativeInterruptibility {
         sleep(5);
         std::stop_source source{ jt.get_stop_source() };
         source.request_stop();  // request stop on stop token of thread 'jt'
+
+        std::stop_source copy = source;  // Kopierbar 
+
+
         Logger::log(std::cout, "Leaving main thread ...");
     }
 }
@@ -183,11 +192,11 @@ void test_joinable_thread_cooperative_interruptibility()
 {
     using namespace JoinableThreadCooperativeInterruptibility;
 
-    jthread_01();
-    jthread_02();
-    jthread_03();
-    jthread_04();
-    jthread_05();
+    //jthread_01();
+    //jthread_02();
+    //jthread_03();
+    //jthread_04();
+    //jthread_05();
     jthread_06();
 }
 
