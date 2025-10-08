@@ -776,3 +776,13 @@ Lambda:
 
 [???]  Move-Semantik:  generalized lambda capture
 
+========================================================
+
+2 kritische Pfade  ==> 1 kritischen Pfad.
+
+== REST-Client
+== Moscito-Client
+
+Da spricht erst mal nichts dagegen.
+
+========================================================
